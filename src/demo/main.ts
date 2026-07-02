@@ -60,7 +60,7 @@ const sliderSpecs: SliderSpec[] = [
     min: 0,
     max: 1,
     step: 0.01,
-    hint: '0 = sparks everywhere, 1 = sparks only where the edge map is bright.',
+    hint: 'How much the edge map contributes to emission (adds with light influence).',
   },
   {
     key: 'edgeGamma',
@@ -76,7 +76,7 @@ const sliderSpecs: SliderSpec[] = [
     min: 0,
     max: 1,
     step: 0.01,
-    hint: 'Photon model: brighter areas emit more sparks (multiplies with edge weighting).',
+    hint: 'How much the light map contributes to emission (adds with edge influence).',
   },
   {
     key: 'lightLow',

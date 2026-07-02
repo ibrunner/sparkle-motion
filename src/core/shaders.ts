@@ -135,9 +135,11 @@ void main() {
   vec3 base = texture(u_base, v_uv).rgb;
   float detail = texture(u_detail, v_uv).r;
 
-  // Photon model: emission rate follows edges and local brightness.
-  float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence)
-    * mix(1.0, lightLevels(lum(base)), u_lightInfluence);
+  // Photon model: emission follows edges OR brightness — additive union
+  // (screen blend) so the maps reinforce instead of multiplying into grey.
+  float edgeC = u_edgeInfluence * pow(detail, u_edgeGamma);
+  float lightC = u_lightInfluence * lightLevels(lum(base));
+  float weight = 1.0 - (1.0 - edgeC) * (1.0 - lightC);
   float p = 1.0 - exp(-u_density * weight * u_burstGate * u_dt);
 
   uint x = uint(gl_FragCoord.x);
@@ -206,8 +208,9 @@ void main() {
   vec3 base = texture(u_base, v_uv).rgb;
   vec3 state = texture(u_state, v_uv).rgb;
   float detail = texture(u_detail, v_uv).r;
-  float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence)
-    * mix(1.0, lightLevels(dot(base, vec3(0.2126, 0.7152, 0.0722))), u_lightInfluence);
+  float edgeC = u_edgeInfluence * pow(detail, u_edgeGamma);
+  float lightC = u_lightInfluence * lightLevels(dot(base, vec3(0.2126, 0.7152, 0.0722)));
+  float weight = 1.0 - (1.0 - edgeC) * (1.0 - lightC);
   if (u_mode == 1) {
     outColor = vec4(base, 1.0);
   } else if (u_mode == 2) {
