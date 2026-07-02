@@ -88,7 +88,16 @@
         <label title="Freeze the simulation on the current frame"><input type="checkbox" id="pause" /> Pause</label>
       </div>
       <div class="row">
-        <label title="Sparks can only brighten pixels, like photons depositing light — removes dark grain"><input type="checkbox" id="photon" checked /> Photon mode (sparks only brighten)</label>
+        <label title="How a spark composites onto the pixel: lighten = photon model; screen/dodge/add glow and amplify the underlying color">Spark blend
+          <select id="blend">
+            <option value="replace">Replace</option>
+            <option value="lighten">Lighten (photon)</option>
+            <option value="screen">Screen</option>
+            <option value="dodge">Color dodge</option>
+            <option value="overlay">Overlay</option>
+            <option value="add">Add</option>
+          </select>
+        </label>
       </div>
       <p class="hint">
         Edge map shows where sparks are allowed to fire (bright = more), live with the

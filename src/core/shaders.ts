@@ -86,10 +86,22 @@ uniform float u_jitterRadius;
 uniform float u_sparkStrength;
 uniform float u_lightInfluence;
 uniform float u_highlightBias;
-uniform float u_lightenOnly;
+uniform int u_blendMode; // 0 replace, 1 lighten, 2 screen, 3 dodge, 4 overlay, 5 add
 uniform uint u_frame;
 in vec2 v_uv;
 out vec4 outColor;
+
+// Photoshop-style layer blends; a = underlying (decayed) pixel, b = spark.
+vec3 blendSpark(vec3 a, vec3 b) {
+  if (u_blendMode == 1) return max(a, b);
+  if (u_blendMode == 2) return 1.0 - (1.0 - a) * (1.0 - b);
+  if (u_blendMode == 3) return min(a / max(1.0 - b, vec3(1e-3)), vec3(1.0));
+  if (u_blendMode == 4) {
+    return mix(2.0 * a * b, 1.0 - 2.0 * (1.0 - a) * (1.0 - b), step(0.5, a));
+  }
+  if (u_blendMode == 5) return min(a + b, vec3(1.0));
+  return b;
+}
 
 uint pcg(uint v) {
   v = v * 747796405u + 2891336453u;
@@ -142,8 +154,7 @@ void main() {
       }
     }
     vec3 spark = rand(x, y, u_frame, 12u) < u_highlightBias ? brightest : first;
-    if (u_lightenOnly > 0.5) spark = max(spark, decayed);
-    outColor = vec4(mix(decayed, spark, u_sparkStrength), 1.0);
+    outColor = vec4(mix(decayed, blendSpark(decayed, spark), u_sparkStrength), 1.0);
   } else {
     outColor = vec4(decayed, 1.0);
   }

@@ -1,4 +1,4 @@
-import { defaultParams, type SparkleParams } from '../core/params';
+import { defaultParams, type SparkBlendMode, type SparkleParams } from '../core/params';
 import { SparkleRenderer, type ViewMode } from '../core/renderer';
 import { decodeImageFile } from './decode';
 import { createTestCard } from './testcard';
@@ -119,7 +119,7 @@ const status = document.getElementById('status') as HTMLElement;
 const fpsEl = document.getElementById('fps') as HTMLElement;
 const abButton = document.getElementById('ab') as HTMLButtonElement;
 const pauseBox = document.getElementById('pause') as HTMLInputElement;
-const photonBox = document.getElementById('photon') as HTMLInputElement;
+const blendSelect = document.getElementById('blend') as HTMLSelectElement;
 const viewSelect = document.getElementById('viewmode') as HTMLSelectElement;
 const fileInput = document.getElementById('file') as HTMLInputElement;
 
@@ -211,9 +211,9 @@ async function main(): Promise<void> {
 
   buildControls(renderer);
 
-  photonBox.checked = defaultParams.lightenOnly;
-  photonBox.addEventListener('change', () => {
-    renderer.setParams({ lightenOnly: photonBox.checked });
+  blendSelect.value = defaultParams.blendMode;
+  blendSelect.addEventListener('change', () => {
+    renderer.setParams({ blendMode: blendSelect.value as SparkBlendMode });
   });
 
   abButton.addEventListener('pointerdown', () => {

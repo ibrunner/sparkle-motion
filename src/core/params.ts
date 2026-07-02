@@ -1,3 +1,10 @@
+/**
+ * Spark compositing modes (Photoshop-style layer math):
+ * replace = snap to the sampled texel; lighten = photon model, only brightens;
+ * screen/dodge/add = increasingly glowy; dodge amplifies the underlying color.
+ */
+export type SparkBlendMode = 'replace' | 'lighten' | 'screen' | 'dodge' | 'overlay' | 'add';
+
 /** Tunable parameters for the sparkle effect. */
 export interface SparkleParams {
   /** Expected spark events per pixel per second (at weight 1). */
@@ -12,8 +19,8 @@ export interface SparkleParams {
   lightInfluence: number;
   /** Chance a spark takes the brightest of 4 candidate texels instead of a random one. */
   highlightBias: number;
-  /** Photon mode: sparks can only brighten pixels (light arrives, never darkens). */
-  lightenOnly: boolean;
+  /** How a spark composites onto the decayed pixel. */
+  blendMode: SparkBlendMode;
   /** Radius (in source texels) sparks may sample from around their footprint. */
   jitterRadius: number;
   /** Unsharp-mask amount applied to the bilinear base image. */
@@ -31,7 +38,7 @@ export const defaultParams: SparkleParams = {
   edgeGamma: 1.5,
   lightInfluence: 0.6,
   highlightBias: 0.6,
-  lightenOnly: true,
+  blendMode: 'lighten',
   jitterRadius: 4,
   sharpen: 0.3,
   sparkStrength: 1,

@@ -1,10 +1,19 @@
 import { createProgram, createTarget, drawFullscreen, type Target } from './gl';
-import { defaultParams, type SparkleParams } from './params';
+import { defaultParams, type SparkBlendMode, type SparkleParams } from './params';
 import { BASE_FRAG, BLIT_FRAG, DETAIL_FRAG, SPARKLE_FRAG, VERT_SRC } from './shaders';
 
 export type ViewMode = 'effect' | 'base' | 'detail' | 'sparks';
 
 const VIEW_MODE_IDS: Record<ViewMode, number> = { effect: 0, base: 1, detail: 2, sparks: 3 };
+
+const BLEND_MODE_IDS: Record<SparkBlendMode, number> = {
+  replace: 0,
+  lighten: 1,
+  screen: 2,
+  dodge: 3,
+  overlay: 4,
+  add: 5,
+};
 
 export class SparkleRenderer {
   private gl: WebGL2RenderingContext;
@@ -116,7 +125,7 @@ export class SparkleRenderer {
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_sparkStrength'), this.params.sparkStrength);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightInfluence'), this.params.lightInfluence);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_highlightBias'), this.params.highlightBias);
-      gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightenOnly'), this.params.lightenOnly ? 1 : 0);
+      gl.uniform1i(this.loc(this.sparkleProgram, 'u_blendMode'), BLEND_MODE_IDS[this.params.blendMode]);
       gl.uniform1ui(this.loc(this.sparkleProgram, 'u_frame'), this.frameIndex >>> 0);
       drawFullscreen(gl);
       const swap = this.stateRead;
