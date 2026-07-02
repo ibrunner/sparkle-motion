@@ -1,5 +1,6 @@
 import { defaultParams, type SparkleParams } from '../core/params';
 import { SparkleRenderer, type ViewMode } from '../core/renderer';
+import { decodeImageFile } from './decode';
 import { createTestCard } from './testcard';
 
 interface SliderSpec {
@@ -98,7 +99,7 @@ const status = document.getElementById('status') as HTMLElement;
 const fpsEl = document.getElementById('fps') as HTMLElement;
 const abButton = document.getElementById('ab') as HTMLButtonElement;
 const pauseBox = document.getElementById('pause') as HTMLInputElement;
-const detailBox = document.getElementById('detailmap') as HTMLInputElement;
+const viewSelect = document.getElementById('viewmode') as HTMLSelectElement;
 const fileInput = document.getElementById('file') as HTMLInputElement;
 
 let imageAspect = 4 / 3;
@@ -169,11 +170,12 @@ function loadBitmap(renderer: SparkleRenderer, bitmap: ImageBitmap): void {
 }
 
 async function loadFile(renderer: SparkleRenderer, file: File): Promise<void> {
+  status.textContent = `Loading "${file.name}"…`;
   try {
-    const bitmap = await createImageBitmap(file);
+    const bitmap = await decodeImageFile(file);
     loadBitmap(renderer, bitmap);
-  } catch {
-    status.textContent = `Could not decode "${file.name}" as an image.`;
+  } catch (err) {
+    status.textContent = err instanceof Error ? err.message : String(err);
   }
 }
 
@@ -220,7 +222,7 @@ async function main(): Promise<void> {
   const tick = (now: number): void => {
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
-    const mode: ViewMode = detailBox.checked ? 'detail' : abHeld ? 'base' : 'effect';
+    const mode: ViewMode = abHeld ? 'base' : (viewSelect.value as ViewMode);
     renderer.render(dt, mode, pauseBox.checked);
     frames += 1;
     acc += dt;

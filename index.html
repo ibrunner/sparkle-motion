@@ -53,6 +53,13 @@
         cursor: pointer;
       }
       button:active { background: #44445a; }
+      select {
+        background: #2a2a33;
+        color: #d8d8de;
+        border: 1px solid #3a3a44;
+        border-radius: 4px;
+        padding: 3px 6px;
+      }
       .hint { color: #77777f; }
       #fps { font-variant-numeric: tabular-nums; color: #9f9fb0; }
     </style>
@@ -71,10 +78,20 @@
         </button>
       </div>
       <div class="row">
+        <label title="What the canvas displays">View
+          <select id="viewmode">
+            <option value="effect">Effect</option>
+            <option value="detail">Edge map (spark weights)</option>
+            <option value="sparks">Spark activity</option>
+          </select>
+        </label>
         <label title="Freeze the simulation on the current frame"><input type="checkbox" id="pause" /> Pause</label>
-        <label title="View the edge-detection map that weights where sparks fire: bright = more sparks"><input type="checkbox" id="detailmap" /> Show edge map</label>
       </div>
-      <p class="hint">The edge map (Sobel edge detection on the full-res source) decides where sparks concentrate — flat areas like sky stay calm.</p>
+      <p class="hint">
+        Edge map shows where sparks are allowed to fire (bright = more), live with the
+        edge influence/gamma sliders. Spark activity shows each spark as a white flash
+        fading with decay.
+      </p>
       <div class="row"><input type="file" id="file" accept="image/*" /></div>
       <div class="row"><span id="fps"></span></div>
       <p class="hint">Drag &amp; drop a high-resolution photo anywhere on the page.</p>

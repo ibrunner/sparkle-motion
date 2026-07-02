@@ -126,24 +126,37 @@ void main() {
 }
 `;
 
-/** Final composite: effect blend, or debug views (base-only A/B, detail map). */
+/**
+ * Final composite: effect blend, or debug views.
+ * Mode 2 shows the *effective* emission weight (edge map with influence and
+ * gamma applied), so the edge sliders visibly reshape it. Mode 3 shows spark
+ * activity: |state - base| as white flashes fading with decay, over a faint
+ * weight-map background.
+ */
 export const BLIT_FRAG = `#version 300 es
 precision highp float;
 uniform sampler2D u_state;
 uniform sampler2D u_base;
 uniform sampler2D u_detail;
 uniform float u_intensity;
-uniform int u_mode; // 0 = effect, 1 = base only, 2 = detail map
+uniform float u_edgeInfluence;
+uniform float u_edgeGamma;
+uniform int u_mode; // 0 = effect, 1 = base only, 2 = emission weights, 3 = spark activity
 in vec2 v_uv;
 out vec4 outColor;
 void main() {
+  vec3 base = texture(u_base, v_uv).rgb;
+  vec3 state = texture(u_state, v_uv).rgb;
+  float detail = texture(u_detail, v_uv).r;
+  float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence);
   if (u_mode == 1) {
-    outColor = vec4(texture(u_base, v_uv).rgb, 1.0);
+    outColor = vec4(base, 1.0);
   } else if (u_mode == 2) {
-    outColor = vec4(texture(u_detail, v_uv).rgb, 1.0);
+    outColor = vec4(vec3(weight), 1.0);
+  } else if (u_mode == 3) {
+    float activity = clamp(length(state - base) * 2.0, 0.0, 1.0);
+    outColor = vec4(max(vec3(activity), vec3(weight * 0.15)), 1.0);
   } else {
-    vec3 base = texture(u_base, v_uv).rgb;
-    vec3 state = texture(u_state, v_uv).rgb;
     outColor = vec4(mix(base, state, u_intensity), 1.0);
   }
 }

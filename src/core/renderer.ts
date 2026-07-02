@@ -2,7 +2,9 @@ import { createProgram, createTarget, drawFullscreen, type Target } from './gl';
 import { defaultParams, type SparkleParams } from './params';
 import { BASE_FRAG, BLIT_FRAG, DETAIL_FRAG, SPARKLE_FRAG, VERT_SRC } from './shaders';
 
-export type ViewMode = 'effect' | 'base' | 'detail';
+export type ViewMode = 'effect' | 'base' | 'detail' | 'sparks';
+
+const VIEW_MODE_IDS: Record<ViewMode, number> = { effect: 0, base: 1, detail: 2, sparks: 3 };
 
 export class SparkleRenderer {
   private gl: WebGL2RenderingContext;
@@ -127,10 +129,9 @@ export class SparkleRenderer {
     this.bindTexture(this.blitProgram, 'u_base', 1, this.base.texture);
     this.bindTexture(this.blitProgram, 'u_detail', 2, this.detail.texture);
     gl.uniform1f(this.loc(this.blitProgram, 'u_intensity'), this.params.intensity);
-    gl.uniform1i(
-      this.loc(this.blitProgram, 'u_mode'),
-      mode === 'base' ? 1 : mode === 'detail' ? 2 : 0,
-    );
+    gl.uniform1f(this.loc(this.blitProgram, 'u_edgeInfluence'), this.params.edgeInfluence);
+    gl.uniform1f(this.loc(this.blitProgram, 'u_edgeGamma'), this.params.edgeGamma);
+    gl.uniform1i(this.loc(this.blitProgram, 'u_mode'), VIEW_MODE_IDS[mode]);
     drawFullscreen(gl);
   }
 

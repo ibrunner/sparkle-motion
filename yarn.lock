@@ -730,6 +730,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"libheif-js@npm:^1.19.8":
+  version: 1.19.8
+  resolution: "libheif-js@npm:1.19.8"
+  checksum: 10c0/a063c44a376a98b987e1488845e1126a63c6443e673ff8db1866e65dafebd2b670da3ee6b797928d7d15fa5253c49be779f7319025984d2e11e6aa8ec40430ca
+  languageName: node
+  linkType: hard
+
 "loupe@npm:^3.1.0, loupe@npm:^3.1.4":
   version: 3.2.1
   resolution: "loupe@npm:3.2.1"
@@ -972,6 +979,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sparkle-motion@workspace:."
   dependencies:
+    libheif-js: "npm:^1.19.8"
     typescript: "npm:^5.8.0"
     vite: "npm:^7.0.0"
     vitest: "npm:^3.2.0"
