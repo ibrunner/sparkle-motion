@@ -1,3 +1,4 @@
+import { initialDrift, stepDrift, type DriftState } from './drift';
 import { createProgram, createTarget, drawFullscreen, type Target } from './gl';
 import {
   defaultParams,
@@ -35,6 +36,7 @@ export class SparkleRenderer {
   private stateRead: Target | null = null;
   private stateWrite: Target | null = null;
   private frameIndex = 0;
+  private drift: DriftState = { ...initialDrift };
   private params: SparkleParams = { ...defaultParams };
 
   constructor(canvas: HTMLCanvasElement) {
@@ -109,6 +111,11 @@ export class SparkleRenderer {
     const h = this.canvas.height;
 
     if (!paused) {
+      // Coherent ocular drift: wander the base sampling phase, then re-render
+      // the base so decay targets and sparks stay phase-aligned.
+      this.drift = stepDrift(this.drift, dt, this.params.driftAmplitude, this.params.driftSpeed);
+      this.renderBase();
+
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.stateWrite.framebuffer);
       gl.viewport(0, 0, w, h);
       gl.useProgram(this.sparkleProgram);
@@ -134,6 +141,7 @@ export class SparkleRenderer {
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightGamma'), lightLevelsGamma(this.params.lightMid));
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_highlightBias'), this.params.highlightBias);
       gl.uniform1i(this.loc(this.sparkleProgram, 'u_blendMode'), BLEND_MODE_IDS[this.params.blendMode]);
+      gl.uniform2f(this.loc(this.sparkleProgram, 'u_drift'), this.drift.offsetX, this.drift.offsetY);
       gl.uniform1ui(this.loc(this.sparkleProgram, 'u_frame'), this.frameIndex >>> 0);
       drawFullscreen(gl);
       const swap = this.stateRead;
@@ -210,6 +218,11 @@ export class SparkleRenderer {
     this.bindTexture(this.baseProgram, 'u_source', 0, this.source);
     gl.uniform2f(this.loc(this.baseProgram, 'u_outputSize'), this.canvas.width, this.canvas.height);
     gl.uniform1f(this.loc(this.baseProgram, 'u_sharpen'), this.params.sharpen);
+    gl.uniform2f(
+      this.loc(this.baseProgram, 'u_phase'),
+      this.drift.offsetX / Math.max(this.sourceWidth, 1),
+      this.drift.offsetY / Math.max(this.sourceHeight, 1),
+    );
     drawFullscreen(gl);
   }
 

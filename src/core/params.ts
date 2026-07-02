@@ -29,6 +29,10 @@ export interface SparkleParams {
   blendMode: SparkBlendMode;
   /** Radius (in source texels) sparks may sample from around their footprint. */
   jitterRadius: number;
+  /** Ocular drift: bound of the coherent sub-texel wander, in source texels. */
+  driftAmplitude: number;
+  /** Ocular drift: waypoint changes per second. */
+  driftSpeed: number;
   /** Unsharp-mask amount applied to the bilinear base image. */
   sharpen: number;
   /** How far a firing pixel moves toward the sampled texel: 1 = full snap. */
@@ -49,6 +53,8 @@ export const defaultParams: SparkleParams = {
   highlightBias: 0.6,
   blendMode: 'lighten',
   jitterRadius: 4,
+  driftAmplitude: 0.6,
+  driftSpeed: 8,
   sharpen: 0.3,
   sparkStrength: 1,
   intensity: 1,

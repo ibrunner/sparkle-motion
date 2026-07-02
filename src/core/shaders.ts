@@ -8,17 +8,22 @@ void main() {
 }
 `;
 
-/** Bilinear downsample of the source with an unsharp mask at output scale. */
+/**
+ * Bilinear downsample of the source with an unsharp mask at output scale.
+ * u_phase (uv units) is the coherent ocular-drift offset; re-rendered every
+ * frame so the whole image resamples at a wandering sub-texel phase.
+ */
 export const BASE_FRAG = `#version 300 es
 precision highp float;
 uniform sampler2D u_source;
 uniform vec2 u_outputSize;
 uniform float u_sharpen;
+uniform vec2 u_phase;
 in vec2 v_uv;
 out vec4 outColor;
 void main() {
   // Image textures are uploaded top-row-first; render targets are bottom-up.
-  vec2 suv = vec2(v_uv.x, 1.0 - v_uv.y);
+  vec2 suv = vec2(v_uv.x, 1.0 - v_uv.y) + u_phase;
   vec2 px = 1.0 / u_outputSize;
   vec3 center = texture(u_source, suv).rgb;
   vec3 blur = (
@@ -90,6 +95,7 @@ uniform float u_lightHigh;
 uniform float u_lightGamma;
 uniform float u_highlightBias;
 uniform int u_blendMode; // 0 replace, 1 lighten, 2 screen, 3 dodge, 4 overlay, 5 add
+uniform vec2 u_drift; // coherent drift offset, in source texels
 uniform uint u_frame;
 in vec2 v_uv;
 out vec4 outColor;
@@ -152,7 +158,7 @@ void main() {
       uint s = 3u + uint(i) * 2u;
       vec2 jitter = (vec2(rand(x, y, u_frame, s), rand(x, y, u_frame, s + 1u)) - 0.5)
         * 2.0 * u_jitterRadius;
-      ivec2 texel = ivec2(clamp(suv * u_sourceSize + jitter, vec2(0.0), u_sourceSize - 1.0));
+      ivec2 texel = ivec2(clamp(suv * u_sourceSize + u_drift + jitter, vec2(0.0), u_sourceSize - 1.0));
       vec3 c = texelFetch(u_source, texel, 0).rgb;
       if (i == 0) first = c;
       float l = lum(c);

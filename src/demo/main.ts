@@ -103,6 +103,22 @@ const sliderSpecs: SliderSpec[] = [
     hint: 'How far into its high-res footprint each spark may sample, in source pixels.',
   },
   {
+    key: 'driftAmplitude',
+    label: 'Drift amplitude (texels)',
+    min: 0,
+    max: 3,
+    step: 0.05,
+    hint: 'Ocular drift: the whole image resamples at a wandering sub-texel phase — coherent motion the eye can integrate into real detail.',
+  },
+  {
+    key: 'driftSpeed',
+    label: 'Drift speed (waypoints/s)',
+    min: 0.5,
+    max: 30,
+    step: 0.5,
+    hint: 'How quickly the drift wanders to new positions.',
+  },
+  {
     key: 'sharpen',
     label: 'Base sharpen',
     min: 0,
