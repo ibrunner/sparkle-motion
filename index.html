@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sparkle Motion</title>
+    <link rel="icon" href="data:," />
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        background: #101014;
+        color: #d8d8de;
+        font: 13px/1.5 system-ui, sans-serif;
+      }
+      #stage {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      #view { max-width: 100%; max-height: 100%; }
+      #status {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        color: #f0a0a0;
+      }
+      #panel {
+        width: 300px;
+        flex: none;
+        padding: 16px;
+        overflow-y: auto;
+        background: #16161c;
+        border-left: 1px solid #2a2a33;
+      }
+      #panel h1 { font-size: 15px; margin: 0 0 12px; color: #fff; }
+      .control { margin-bottom: 10px; }
+      .control label { display: flex; justify-content: space-between; }
+      .control input[type="range"] { width: 100%; }
+      .row { margin: 12px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+      button {
+        background: #2a2a33;
+        color: #d8d8de;
+        border: 1px solid #3a3a44;
+        border-radius: 4px;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+      button:active { background: #44445a; }
+      .hint { color: #77777f; }
+      #fps { font-variant-numeric: tabular-nums; color: #9f9fb0; }
+    </style>
+  </head>
+  <body>
+    <main id="stage">
+      <canvas id="view"></canvas>
+      <div id="status"></div>
+    </main>
+    <aside id="panel">
+      <h1>Sparkle Motion</h1>
+      <div id="controls"></div>
+      <div class="row"><button id="ab">Hold to compare (plain bilinear)</button></div>
+      <div class="row">
+        <label><input type="checkbox" id="pause" /> Pause</label>
+        <label><input type="checkbox" id="detailmap" /> Detail map</label>
+      </div>
+      <div class="row"><input type="file" id="file" accept="image/*" /></div>
+      <div class="row"><span id="fps"></span></div>
+      <p class="hint">Drag &amp; drop a high-resolution photo anywhere on the page.</p>
+    </aside>
+    <script type="module" src="/src/demo/main.ts"></script>
+  </body>
+</html>

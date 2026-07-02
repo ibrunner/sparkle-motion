@@ -1,0 +1,46 @@
+/** Tunable parameters for the sparkle effect. */
+export interface SparkleParams {
+  /** Expected spark events per pixel per second (at weight 1). */
+  density: number;
+  /** Seconds for a fired pixel to fade halfway back to the base image. */
+  halfLife: number;
+  /** 0 = uniform sparkle, 1 = fully edge-weighted. */
+  edgeInfluence: number;
+  /** Contrast curve applied to the detail map. */
+  edgeGamma: number;
+  /** Radius (in source texels) sparks may sample from around their footprint. */
+  jitterRadius: number;
+  /** Unsharp-mask amount applied to the bilinear base image. */
+  sharpen: number;
+  /** Master blend: 0 = plain base image, 1 = full effect. */
+  intensity: number;
+}
+
+export const defaultParams: SparkleParams = {
+  density: 8,
+  halfLife: 0.15,
+  edgeInfluence: 0.85,
+  edgeGamma: 1.5,
+  jitterRadius: 4,
+  sharpen: 0.3,
+  intensity: 1,
+};
+
+/**
+ * Probability that a pixel fires this frame, given a Poisson event rate.
+ * Rate-based so 60Hz and 120Hz displays integrate to the same event density.
+ * Mirrored in SPARKLE_FRAG.
+ */
+export function fireProbability(ratePerSecond: number, weight: number, dt: number): number {
+  return 1 - Math.exp(-ratePerSecond * weight * dt);
+}
+
+/**
+ * Per-frame retention factor for exponential decay toward the base image.
+ * After `halfLifeSeconds` of accumulated frames, a spark has faded 50%.
+ * Mirrored in SPARKLE_FRAG.
+ */
+export function decayFactor(halfLifeSeconds: number, dt: number): number {
+  if (halfLifeSeconds <= 0) return 0;
+  return Math.exp((-Math.LN2 * dt) / halfLifeSeconds);
+}
