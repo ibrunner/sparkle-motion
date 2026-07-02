@@ -30,6 +30,22 @@ const sliderSpecs: SliderSpec[] = [
     hint: 'How often each pixel fires a spark. Low values = sparse, calm shimmer.',
   },
   {
+    key: 'burstRate',
+    label: 'Burst rate (pops/s)',
+    min: 0,
+    max: 8,
+    step: 0.1,
+    hint: 'Sparkle arrives in pops at this rate; 0 = steady continuous emission.',
+  },
+  {
+    key: 'burstLength',
+    label: 'Burst length (s)',
+    min: 0.02,
+    max: 1,
+    step: 0.01,
+    hint: 'How long each pop of sparkles lasts before the emission gate fades shut.',
+  },
+  {
     key: 'halfLife',
     label: 'Decay half-life (s)',
     min: 0.02,

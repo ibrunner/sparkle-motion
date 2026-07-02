@@ -7,8 +7,12 @@ export type SparkBlendMode = 'replace' | 'lighten' | 'screen' | 'dodge' | 'overl
 
 /** Tunable parameters for the sparkle effect. */
 export interface SparkleParams {
-  /** Expected spark events per pixel per second (at weight 1). */
+  /** Expected spark events per pixel per second (at weight 1, gate open). */
   density: number;
+  /** Pops of sparkle per second; 0 = steady continuous emission. */
+  burstRate: number;
+  /** Half-life of each pop's envelope, in seconds. */
+  burstLength: number;
   /** Seconds for a fired pixel to fade halfway back to the base image. */
   halfLife: number;
   /** 0 = uniform sparkle, 1 = fully edge-weighted. */
@@ -43,6 +47,8 @@ export interface SparkleParams {
 
 export const defaultParams: SparkleParams = {
   density: 8,
+  burstRate: 2,
+  burstLength: 0.15,
   halfLife: 0.15,
   edgeInfluence: 0.85,
   edgeGamma: 1.5,

@@ -1,3 +1,4 @@
+import { burstGate, initialBurst, stepBurst, type BurstState } from './burst';
 import { initialDrift, stepDrift, type DriftState } from './drift';
 import { createProgram, createTarget, drawFullscreen, type Target } from './gl';
 import {
@@ -37,6 +38,7 @@ export class SparkleRenderer {
   private stateWrite: Target | null = null;
   private frameIndex = 0;
   private drift: DriftState = { ...initialDrift };
+  private burst: BurstState = { ...initialBurst };
   private params: SparkleParams = { ...defaultParams };
 
   constructor(canvas: HTMLCanvasElement) {
@@ -114,6 +116,7 @@ export class SparkleRenderer {
       // Coherent ocular drift: wander the base sampling phase, then re-render
       // the base so decay targets and sparks stay phase-aligned.
       this.drift = stepDrift(this.drift, dt, this.params.driftAmplitude, this.params.driftSpeed);
+      this.burst = stepBurst(this.burst, dt, this.params.burstRate, this.params.burstLength);
       this.renderBase();
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.stateWrite.framebuffer);
@@ -142,6 +145,10 @@ export class SparkleRenderer {
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_highlightBias'), this.params.highlightBias);
       gl.uniform1i(this.loc(this.sparkleProgram, 'u_blendMode'), BLEND_MODE_IDS[this.params.blendMode]);
       gl.uniform2f(this.loc(this.sparkleProgram, 'u_drift'), this.drift.offsetX, this.drift.offsetY);
+      gl.uniform1f(
+        this.loc(this.sparkleProgram, 'u_burstGate'),
+        burstGate(this.burst, this.params.burstRate),
+      );
       gl.uniform1ui(this.loc(this.sparkleProgram, 'u_frame'), this.frameIndex >>> 0);
       drawFullscreen(gl);
       const swap = this.stateRead;

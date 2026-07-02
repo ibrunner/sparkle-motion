@@ -96,6 +96,7 @@ uniform float u_lightGamma;
 uniform float u_highlightBias;
 uniform int u_blendMode; // 0 replace, 1 lighten, 2 screen, 3 dodge, 4 overlay, 5 add
 uniform vec2 u_drift; // coherent drift offset, in source texels
+uniform float u_burstGate; // temporal burst envelope gating the fire rate
 uniform uint u_frame;
 in vec2 v_uv;
 out vec4 outColor;
@@ -137,7 +138,7 @@ void main() {
   // Photon model: emission rate follows edges and local brightness.
   float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence)
     * mix(1.0, lightLevels(lum(base)), u_lightInfluence);
-  float p = 1.0 - exp(-u_density * weight * u_dt);
+  float p = 1.0 - exp(-u_density * weight * u_burstGate * u_dt);
 
   uint x = uint(gl_FragCoord.x);
   uint y = uint(gl_FragCoord.y);
