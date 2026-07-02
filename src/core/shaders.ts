@@ -84,6 +84,9 @@ uniform float u_edgeInfluence;
 uniform float u_edgeGamma;
 uniform float u_jitterRadius;
 uniform float u_sparkStrength;
+uniform float u_lightInfluence;
+uniform float u_highlightBias;
+uniform float u_lightenOnly;
 uniform uint u_frame;
 in vec2 v_uv;
 out vec4 outColor;
@@ -96,13 +99,18 @@ uint pcg(uint v) {
 float rand(uint x, uint y, uint frame, uint salt) {
   return float(pcg(x ^ pcg(y ^ pcg(frame ^ salt)))) / 4294967295.0;
 }
+float lum(vec3 c) {
+  return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
 
 void main() {
   vec3 prev = texture(u_prev, v_uv).rgb;
   vec3 base = texture(u_base, v_uv).rgb;
   float detail = texture(u_detail, v_uv).r;
 
-  float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence);
+  // Photon model: emission rate follows edges and local brightness.
+  float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence)
+    * mix(1.0, lum(base), u_lightInfluence);
   float p = 1.0 - exp(-u_density * weight * u_dt);
 
   uint x = uint(gl_FragCoord.x);
@@ -115,10 +123,26 @@ void main() {
   if (roll < p) {
     // Image textures are uploaded top-row-first; render targets are bottom-up.
     vec2 suv = vec2(v_uv.x, 1.0 - v_uv.y);
-    vec2 jitter = (vec2(rand(x, y, u_frame, 1u), rand(x, y, u_frame, 2u)) - 0.5)
-      * 2.0 * u_jitterRadius;
-    ivec2 texel = ivec2(clamp(suv * u_sourceSize + jitter, vec2(0.0), u_sourceSize - 1.0));
-    vec3 spark = texelFetch(u_source, texel, 0).rgb;
+    // Draw 4 candidate photons from the footprint; u_highlightBias is the
+    // chance we keep the brightest one (bright texels emit more photons).
+    vec3 first = vec3(0.0);
+    vec3 brightest = vec3(0.0);
+    float bestLum = -1.0;
+    for (int i = 0; i < 4; i++) {
+      uint s = 3u + uint(i) * 2u;
+      vec2 jitter = (vec2(rand(x, y, u_frame, s), rand(x, y, u_frame, s + 1u)) - 0.5)
+        * 2.0 * u_jitterRadius;
+      ivec2 texel = ivec2(clamp(suv * u_sourceSize + jitter, vec2(0.0), u_sourceSize - 1.0));
+      vec3 c = texelFetch(u_source, texel, 0).rgb;
+      if (i == 0) first = c;
+      float l = lum(c);
+      if (l > bestLum) {
+        bestLum = l;
+        brightest = c;
+      }
+    }
+    vec3 spark = rand(x, y, u_frame, 12u) < u_highlightBias ? brightest : first;
+    if (u_lightenOnly > 0.5) spark = max(spark, decayed);
     outColor = vec4(mix(decayed, spark, u_sparkStrength), 1.0);
   } else {
     outColor = vec4(decayed, 1.0);
@@ -141,6 +165,7 @@ uniform sampler2D u_detail;
 uniform float u_intensity;
 uniform float u_edgeInfluence;
 uniform float u_edgeGamma;
+uniform float u_lightInfluence;
 uniform int u_mode; // 0 = effect, 1 = base only, 2 = emission weights, 3 = spark activity
 in vec2 v_uv;
 out vec4 outColor;
@@ -148,7 +173,8 @@ void main() {
   vec3 base = texture(u_base, v_uv).rgb;
   vec3 state = texture(u_state, v_uv).rgb;
   float detail = texture(u_detail, v_uv).r;
-  float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence);
+  float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence)
+    * mix(1.0, dot(base, vec3(0.2126, 0.7152, 0.0722)), u_lightInfluence);
   if (u_mode == 1) {
     outColor = vec4(base, 1.0);
   } else if (u_mode == 2) {

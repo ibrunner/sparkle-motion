@@ -8,6 +8,12 @@ export interface SparkleParams {
   edgeInfluence: number;
   /** Contrast curve applied to the detail map. */
   edgeGamma: number;
+  /** Photon model: how much brighter areas emit more sparks (0 = ignore light). */
+  lightInfluence: number;
+  /** Chance a spark takes the brightest of 4 candidate texels instead of a random one. */
+  highlightBias: number;
+  /** Photon mode: sparks can only brighten pixels (light arrives, never darkens). */
+  lightenOnly: boolean;
   /** Radius (in source texels) sparks may sample from around their footprint. */
   jitterRadius: number;
   /** Unsharp-mask amount applied to the bilinear base image. */
@@ -23,6 +29,9 @@ export const defaultParams: SparkleParams = {
   halfLife: 0.15,
   edgeInfluence: 0.85,
   edgeGamma: 1.5,
+  lightInfluence: 0.6,
+  highlightBias: 0.6,
+  lightenOnly: true,
   jitterRadius: 4,
   sharpen: 0.3,
   sparkStrength: 1,

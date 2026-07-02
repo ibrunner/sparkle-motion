@@ -3,8 +3,12 @@ import { SparkleRenderer, type ViewMode } from '../core/renderer';
 import { decodeImageFile } from './decode';
 import { createTestCard } from './testcard';
 
+type NumericParamKey = {
+  [K in keyof SparkleParams]: SparkleParams[K] extends number ? K : never;
+}[keyof SparkleParams];
+
 interface SliderSpec {
-  key: keyof SparkleParams;
+  key: NumericParamKey;
   label: string;
   min: number;
   max: number;
@@ -49,6 +53,22 @@ const sliderSpecs: SliderSpec[] = [
     max: 4,
     step: 0.05,
     hint: 'Contrast on the edge map: higher = only the strongest edges spark.',
+  },
+  {
+    key: 'lightInfluence',
+    label: 'Light influence',
+    min: 0,
+    max: 1,
+    step: 0.01,
+    hint: 'Photon model: brighter areas emit more sparks (multiplies with edge weighting).',
+  },
+  {
+    key: 'highlightBias',
+    label: 'Highlight bias',
+    min: 0,
+    max: 1,
+    step: 0.01,
+    hint: 'Chance a spark takes the brightest of 4 candidate texels — recovers glints that averaging destroys.',
   },
   {
     key: 'jitterRadius',
@@ -99,6 +119,7 @@ const status = document.getElementById('status') as HTMLElement;
 const fpsEl = document.getElementById('fps') as HTMLElement;
 const abButton = document.getElementById('ab') as HTMLButtonElement;
 const pauseBox = document.getElementById('pause') as HTMLInputElement;
+const photonBox = document.getElementById('photon') as HTMLInputElement;
 const viewSelect = document.getElementById('viewmode') as HTMLSelectElement;
 const fileInput = document.getElementById('file') as HTMLInputElement;
 
@@ -189,6 +210,11 @@ async function main(): Promise<void> {
   }
 
   buildControls(renderer);
+
+  photonBox.checked = defaultParams.lightenOnly;
+  photonBox.addEventListener('change', () => {
+    renderer.setParams({ lightenOnly: photonBox.checked });
+  });
 
   abButton.addEventListener('pointerdown', () => {
     abHeld = true;

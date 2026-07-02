@@ -114,6 +114,9 @@ export class SparkleRenderer {
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_edgeGamma'), this.params.edgeGamma);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_jitterRadius'), this.params.jitterRadius);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_sparkStrength'), this.params.sparkStrength);
+      gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightInfluence'), this.params.lightInfluence);
+      gl.uniform1f(this.loc(this.sparkleProgram, 'u_highlightBias'), this.params.highlightBias);
+      gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightenOnly'), this.params.lightenOnly ? 1 : 0);
       gl.uniform1ui(this.loc(this.sparkleProgram, 'u_frame'), this.frameIndex >>> 0);
       drawFullscreen(gl);
       const swap = this.stateRead;
@@ -131,6 +134,7 @@ export class SparkleRenderer {
     gl.uniform1f(this.loc(this.blitProgram, 'u_intensity'), this.params.intensity);
     gl.uniform1f(this.loc(this.blitProgram, 'u_edgeInfluence'), this.params.edgeInfluence);
     gl.uniform1f(this.loc(this.blitProgram, 'u_edgeGamma'), this.params.edgeGamma);
+    gl.uniform1f(this.loc(this.blitProgram, 'u_lightInfluence'), this.params.lightInfluence);
     gl.uniform1i(this.loc(this.blitProgram, 'u_mode'), VIEW_MODE_IDS[mode]);
     drawFullscreen(gl);
   }
