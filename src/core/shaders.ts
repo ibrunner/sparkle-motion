@@ -83,6 +83,7 @@ uniform float u_halfLife;
 uniform float u_edgeInfluence;
 uniform float u_edgeGamma;
 uniform float u_jitterRadius;
+uniform float u_sparkStrength;
 uniform uint u_frame;
 in vec2 v_uv;
 out vec4 outColor;
@@ -108,16 +109,19 @@ void main() {
   uint y = uint(gl_FragCoord.y);
   float roll = rand(x, y, u_frame, 0u);
 
+  float keep = u_halfLife <= 0.0 ? 0.0 : exp(-0.69314718 * u_dt / u_halfLife);
+  vec3 decayed = mix(base, prev, keep);
+
   if (roll < p) {
     // Image textures are uploaded top-row-first; render targets are bottom-up.
     vec2 suv = vec2(v_uv.x, 1.0 - v_uv.y);
     vec2 jitter = (vec2(rand(x, y, u_frame, 1u), rand(x, y, u_frame, 2u)) - 0.5)
       * 2.0 * u_jitterRadius;
     ivec2 texel = ivec2(clamp(suv * u_sourceSize + jitter, vec2(0.0), u_sourceSize - 1.0));
-    outColor = vec4(texelFetch(u_source, texel, 0).rgb, 1.0);
+    vec3 spark = texelFetch(u_source, texel, 0).rgb;
+    outColor = vec4(mix(decayed, spark, u_sparkStrength), 1.0);
   } else {
-    float keep = u_halfLife <= 0.0 ? 0.0 : exp(-0.69314718 * u_dt / u_halfLife);
-    outColor = vec4(mix(base, prev, keep), 1.0);
+    outColor = vec4(decayed, 1.0);
   }
 }
 `;

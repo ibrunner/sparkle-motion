@@ -8,17 +8,88 @@ interface SliderSpec {
   min: number;
   max: number;
   step: number;
+  /** >1 compresses the slider's low end for fine control of subtle values. */
+  curve?: number;
+  /** One-line description shown under the label and as a tooltip. */
+  hint: string;
 }
 
 const sliderSpecs: SliderSpec[] = [
-  { key: 'density', label: 'Spark density (events/px/s)', min: 0, max: 60, step: 0.5 },
-  { key: 'halfLife', label: 'Decay half-life (s)', min: 0.02, max: 2, step: 0.01 },
-  { key: 'edgeInfluence', label: 'Edge influence', min: 0, max: 1, step: 0.01 },
-  { key: 'edgeGamma', label: 'Edge gamma', min: 0.25, max: 4, step: 0.05 },
-  { key: 'jitterRadius', label: 'Jitter radius (texels)', min: 0, max: 32, step: 1 },
-  { key: 'sharpen', label: 'Base sharpen', min: 0, max: 2, step: 0.05 },
-  { key: 'intensity', label: 'Effect intensity', min: 0, max: 1, step: 0.01 },
+  {
+    key: 'density',
+    label: 'Spark density (events/px/s)',
+    min: 0,
+    max: 60,
+    step: 0.5,
+    curve: 3,
+    hint: 'How often each pixel fires a spark. Low values = sparse, calm shimmer.',
+  },
+  {
+    key: 'halfLife',
+    label: 'Decay half-life (s)',
+    min: 0.02,
+    max: 10,
+    step: 0.01,
+    curve: 3,
+    hint: 'How long a fired spark takes to fade halfway back to the base image.',
+  },
+  {
+    key: 'edgeInfluence',
+    label: 'Edge influence',
+    min: 0,
+    max: 1,
+    step: 0.01,
+    hint: '0 = sparks everywhere, 1 = sparks only where the edge map is bright.',
+  },
+  {
+    key: 'edgeGamma',
+    label: 'Edge gamma',
+    min: 0.25,
+    max: 4,
+    step: 0.05,
+    hint: 'Contrast on the edge map: higher = only the strongest edges spark.',
+  },
+  {
+    key: 'jitterRadius',
+    label: 'Jitter radius (texels)',
+    min: 0,
+    max: 32,
+    step: 1,
+    hint: 'How far into its high-res footprint each spark may sample, in source pixels.',
+  },
+  {
+    key: 'sharpen',
+    label: 'Base sharpen',
+    min: 0,
+    max: 2,
+    step: 0.05,
+    hint: 'Unsharp mask on the static downsampled base image.',
+  },
+  {
+    key: 'sparkStrength',
+    label: 'Spark strength',
+    min: 0,
+    max: 1,
+    step: 0.01,
+    hint: 'How far a spark moves toward the true pixel value. Low = gentle nudges.',
+  },
+  {
+    key: 'intensity',
+    label: 'Effect intensity',
+    min: 0,
+    max: 1,
+    step: 0.01,
+    hint: 'Master blend: 0 shows only the base image, 1 the full effect.',
+  },
 ];
+
+const SLIDER_RESOLUTION = 1000;
+
+function formatValue(v: number): string {
+  if (v >= 10) return v.toFixed(1);
+  if (v >= 1) return v.toFixed(2);
+  return v.toFixed(3);
+}
 
 const canvas = document.getElementById('view') as HTMLCanvasElement;
 const stage = document.getElementById('stage') as HTMLElement;
@@ -37,24 +108,41 @@ function buildControls(renderer: SparkleRenderer): void {
   for (const spec of sliderSpecs) {
     const wrap = document.createElement('div');
     wrap.className = 'control';
+    wrap.title = spec.hint;
     const label = document.createElement('label');
     const name = document.createElement('span');
     name.textContent = spec.label;
     const value = document.createElement('span');
-    value.textContent = String(defaultParams[spec.key]);
+    value.textContent = formatValue(defaultParams[spec.key]);
     label.append(name, value);
     const input = document.createElement('input');
     input.type = 'range';
-    input.min = String(spec.min);
-    input.max = String(spec.max);
-    input.step = String(spec.step);
-    input.value = String(defaultParams[spec.key]);
+    const curve = spec.curve ?? 1;
+    const toValue = (raw: number): number =>
+      spec.min + (spec.max - spec.min) * Math.pow(raw / SLIDER_RESOLUTION, curve);
+    const toRaw = (v: number): number =>
+      SLIDER_RESOLUTION * Math.pow((v - spec.min) / (spec.max - spec.min), 1 / curve);
+    if (curve !== 1) {
+      input.min = '0';
+      input.max = String(SLIDER_RESOLUTION);
+      input.step = '1';
+      input.value = String(toRaw(defaultParams[spec.key]));
+    } else {
+      input.min = String(spec.min);
+      input.max = String(spec.max);
+      input.step = String(spec.step);
+      input.value = String(defaultParams[spec.key]);
+    }
     input.addEventListener('input', () => {
-      const v = parseFloat(input.value);
-      value.textContent = String(v);
+      const raw = parseFloat(input.value);
+      const v = curve !== 1 ? toValue(raw) : raw;
+      value.textContent = formatValue(v);
       renderer.setParams({ [spec.key]: v } as Partial<SparkleParams>);
     });
-    wrap.append(label, input);
+    const hint = document.createElement('div');
+    hint.className = 'control-hint';
+    hint.textContent = spec.hint;
+    wrap.append(label, hint, input);
     controls.append(wrap);
   }
 }

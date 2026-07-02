@@ -111,6 +111,7 @@ export class SparkleRenderer {
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_edgeInfluence'), this.params.edgeInfluence);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_edgeGamma'), this.params.edgeGamma);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_jitterRadius'), this.params.jitterRadius);
+      gl.uniform1f(this.loc(this.sparkleProgram, 'u_sparkStrength'), this.params.sparkStrength);
       gl.uniform1ui(this.loc(this.sparkleProgram, 'u_frame'), this.frameIndex >>> 0);
       drawFullscreen(gl);
       const swap = this.stateRead;

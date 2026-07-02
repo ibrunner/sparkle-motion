@@ -12,6 +12,8 @@ export interface SparkleParams {
   jitterRadius: number;
   /** Unsharp-mask amount applied to the bilinear base image. */
   sharpen: number;
+  /** How far a firing pixel moves toward the sampled texel: 1 = full snap. */
+  sparkStrength: number;
   /** Master blend: 0 = plain base image, 1 = full effect. */
   intensity: number;
 }
@@ -23,6 +25,7 @@ export const defaultParams: SparkleParams = {
   edgeGamma: 1.5,
   jitterRadius: 4,
   sharpen: 0.3,
+  sparkStrength: 1,
   intensity: 1,
 };
 

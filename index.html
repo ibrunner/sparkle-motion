@@ -39,9 +39,10 @@
         border-left: 1px solid #2a2a33;
       }
       #panel h1 { font-size: 15px; margin: 0 0 12px; color: #fff; }
-      .control { margin-bottom: 10px; }
+      .control { margin-bottom: 12px; }
       .control label { display: flex; justify-content: space-between; }
       .control input[type="range"] { width: 100%; }
+      .control-hint { font-size: 11px; color: #77777f; margin: 1px 0 3px; }
       .row { margin: 12px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
       button {
         background: #2a2a33;
@@ -64,11 +65,16 @@
     <aside id="panel">
       <h1>Sparkle Motion</h1>
       <div id="controls"></div>
-      <div class="row"><button id="ab">Hold to compare (plain bilinear)</button></div>
       <div class="row">
-        <label><input type="checkbox" id="pause" /> Pause</label>
-        <label><input type="checkbox" id="detailmap" /> Detail map</label>
+        <button id="ab" title="Shows the plain downsampled image while held — release to bring the effect back">
+          Hold to compare (plain bilinear)
+        </button>
       </div>
+      <div class="row">
+        <label title="Freeze the simulation on the current frame"><input type="checkbox" id="pause" /> Pause</label>
+        <label title="View the edge-detection map that weights where sparks fire: bright = more sparks"><input type="checkbox" id="detailmap" /> Show edge map</label>
+      </div>
+      <p class="hint">The edge map (Sobel edge detection on the full-res source) decides where sparks concentrate — flat areas like sky stay calm.</p>
       <div class="row"><input type="file" id="file" accept="image/*" /></div>
       <div class="row"><span id="fps"></span></div>
       <p class="hint">Drag &amp; drop a high-resolution photo anywhere on the page.</p>
