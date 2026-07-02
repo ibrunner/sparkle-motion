@@ -17,13 +17,15 @@ uniform float u_sharpen;
 in vec2 v_uv;
 out vec4 outColor;
 void main() {
+  // Image textures are uploaded top-row-first; render targets are bottom-up.
+  vec2 suv = vec2(v_uv.x, 1.0 - v_uv.y);
   vec2 px = 1.0 / u_outputSize;
-  vec3 center = texture(u_source, v_uv).rgb;
+  vec3 center = texture(u_source, suv).rgb;
   vec3 blur = (
-    texture(u_source, v_uv + vec2(px.x, 0.0)).rgb +
-    texture(u_source, v_uv - vec2(px.x, 0.0)).rgb +
-    texture(u_source, v_uv + vec2(0.0, px.y)).rgb +
-    texture(u_source, v_uv - vec2(0.0, px.y)).rgb
+    texture(u_source, suv + vec2(px.x, 0.0)).rgb +
+    texture(u_source, suv - vec2(px.x, 0.0)).rgb +
+    texture(u_source, suv + vec2(0.0, px.y)).rgb +
+    texture(u_source, suv - vec2(0.0, px.y)).rgb
   ) * 0.25;
   outColor = vec4(clamp(center + u_sharpen * (center - blur), 0.0, 1.0), 1.0);
 }
@@ -43,15 +45,17 @@ float lum(vec2 uv) {
   return dot(texture(u_source, uv).rgb, vec3(0.2126, 0.7152, 0.0722));
 }
 void main() {
+  // Image textures are uploaded top-row-first; render targets are bottom-up.
+  vec2 suv = vec2(v_uv.x, 1.0 - v_uv.y);
   vec2 t = 1.0 / u_sourceSize;
-  float tl = lum(v_uv + vec2(-t.x,  t.y));
-  float tc = lum(v_uv + vec2( 0.0,  t.y));
-  float tr = lum(v_uv + vec2( t.x,  t.y));
-  float ml = lum(v_uv + vec2(-t.x,  0.0));
-  float mr = lum(v_uv + vec2( t.x,  0.0));
-  float bl = lum(v_uv + vec2(-t.x, -t.y));
-  float bc = lum(v_uv + vec2( 0.0, -t.y));
-  float br = lum(v_uv + vec2( t.x, -t.y));
+  float tl = lum(suv + vec2(-t.x,  t.y));
+  float tc = lum(suv + vec2( 0.0,  t.y));
+  float tr = lum(suv + vec2( t.x,  t.y));
+  float ml = lum(suv + vec2(-t.x,  0.0));
+  float mr = lum(suv + vec2( t.x,  0.0));
+  float bl = lum(suv + vec2(-t.x, -t.y));
+  float bc = lum(suv + vec2( 0.0, -t.y));
+  float br = lum(suv + vec2( t.x, -t.y));
   float gx = (tr + 2.0 * mr + br) - (tl + 2.0 * ml + bl);
   float gy = (tl + 2.0 * tc + tr) - (bl + 2.0 * bc + br);
   float mag = clamp(length(vec2(gx, gy)), 0.0, 1.0);
@@ -105,9 +109,11 @@ void main() {
   float roll = rand(x, y, u_frame, 0u);
 
   if (roll < p) {
+    // Image textures are uploaded top-row-first; render targets are bottom-up.
+    vec2 suv = vec2(v_uv.x, 1.0 - v_uv.y);
     vec2 jitter = (vec2(rand(x, y, u_frame, 1u), rand(x, y, u_frame, 2u)) - 0.5)
       * 2.0 * u_jitterRadius;
-    ivec2 texel = ivec2(clamp(v_uv * u_sourceSize + jitter, vec2(0.0), u_sourceSize - 1.0));
+    ivec2 texel = ivec2(clamp(suv * u_sourceSize + jitter, vec2(0.0), u_sourceSize - 1.0));
     outColor = vec4(texelFetch(u_source, texel, 0).rgb, 1.0);
   } else {
     float keep = u_halfLife <= 0.0 ? 0.0 : exp(-0.69314718 * u_dt / u_halfLife);
