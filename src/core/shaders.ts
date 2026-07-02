@@ -85,6 +85,9 @@ uniform float u_edgeGamma;
 uniform float u_jitterRadius;
 uniform float u_sparkStrength;
 uniform float u_lightInfluence;
+uniform float u_lightLow;
+uniform float u_lightHigh;
+uniform float u_lightGamma;
 uniform float u_highlightBias;
 uniform int u_blendMode; // 0 replace, 1 lighten, 2 screen, 3 dodge, 4 overlay, 5 add
 uniform uint u_frame;
@@ -114,6 +117,11 @@ float rand(uint x, uint y, uint frame, uint salt) {
 float lum(vec3 c) {
   return dot(c, vec3(0.2126, 0.7152, 0.0722));
 }
+// Levels (low/high/midpoint-gamma) on the light map, like Photoshop Levels.
+float lightLevels(float v) {
+  float t = clamp((v - u_lightLow) / max(u_lightHigh - u_lightLow, 1e-3), 0.0, 1.0);
+  return pow(t, u_lightGamma);
+}
 
 void main() {
   vec3 prev = texture(u_prev, v_uv).rgb;
@@ -122,7 +130,7 @@ void main() {
 
   // Photon model: emission rate follows edges and local brightness.
   float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence)
-    * mix(1.0, lum(base), u_lightInfluence);
+    * mix(1.0, lightLevels(lum(base)), u_lightInfluence);
   float p = 1.0 - exp(-u_density * weight * u_dt);
 
   uint x = uint(gl_FragCoord.x);
@@ -177,15 +185,22 @@ uniform float u_intensity;
 uniform float u_edgeInfluence;
 uniform float u_edgeGamma;
 uniform float u_lightInfluence;
+uniform float u_lightLow;
+uniform float u_lightHigh;
+uniform float u_lightGamma;
 uniform int u_mode; // 0 = effect, 1 = base only, 2 = emission weights, 3 = spark activity
 in vec2 v_uv;
 out vec4 outColor;
+float lightLevels(float v) {
+  float t = clamp((v - u_lightLow) / max(u_lightHigh - u_lightLow, 1e-3), 0.0, 1.0);
+  return pow(t, u_lightGamma);
+}
 void main() {
   vec3 base = texture(u_base, v_uv).rgb;
   vec3 state = texture(u_state, v_uv).rgb;
   float detail = texture(u_detail, v_uv).r;
   float weight = mix(1.0, pow(detail, u_edgeGamma), u_edgeInfluence)
-    * mix(1.0, dot(base, vec3(0.2126, 0.7152, 0.0722)), u_lightInfluence);
+    * mix(1.0, lightLevels(dot(base, vec3(0.2126, 0.7152, 0.0722))), u_lightInfluence);
   if (u_mode == 1) {
     outColor = vec4(base, 1.0);
   } else if (u_mode == 2) {

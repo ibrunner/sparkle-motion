@@ -17,6 +17,12 @@ export interface SparkleParams {
   edgeGamma: number;
   /** Photon model: how much brighter areas emit more sparks (0 = ignore light). */
   lightInfluence: number;
+  /** Levels on the light map: input black point (luminance mapped to 0). */
+  lightLow: number;
+  /** Levels on the light map: input white point (luminance mapped to 1). */
+  lightHigh: number;
+  /** Levels on the light map: input midpoint (this luminance maps to 0.5). */
+  lightMid: number;
   /** Chance a spark takes the brightest of 4 candidate texels instead of a random one. */
   highlightBias: number;
   /** How a spark composites onto the decayed pixel. */
@@ -37,6 +43,9 @@ export const defaultParams: SparkleParams = {
   edgeInfluence: 0.85,
   edgeGamma: 1.5,
   lightInfluence: 0.6,
+  lightLow: 0,
+  lightHigh: 1,
+  lightMid: 0.5,
   highlightBias: 0.6,
   blendMode: 'lighten',
   jitterRadius: 4,
@@ -62,4 +71,14 @@ export function fireProbability(ratePerSecond: number, weight: number, dt: numbe
 export function decayFactor(halfLifeSeconds: number, dt: number): number {
   if (halfLifeSeconds <= 0) return 0;
   return Math.exp((-Math.LN2 * dt) / halfLifeSeconds);
+}
+
+/**
+ * Photoshop-style Levels midpoint → gamma exponent: pow(t, gamma) maps the
+ * midpoint luminance to 0.5. mid 0.5 → 1 (identity); lower mid brightens.
+ * Mirrored in SPARKLE_FRAG/BLIT_FRAG via the u_lightGamma uniform.
+ */
+export function lightLevelsGamma(mid: number): number {
+  const clamped = Math.min(Math.max(mid, 0.01), 0.99);
+  return Math.log(0.5) / Math.log(clamped);
 }

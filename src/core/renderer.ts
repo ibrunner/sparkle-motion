@@ -1,5 +1,10 @@
 import { createProgram, createTarget, drawFullscreen, type Target } from './gl';
-import { defaultParams, type SparkBlendMode, type SparkleParams } from './params';
+import {
+  defaultParams,
+  lightLevelsGamma,
+  type SparkBlendMode,
+  type SparkleParams,
+} from './params';
 import { BASE_FRAG, BLIT_FRAG, DETAIL_FRAG, SPARKLE_FRAG, VERT_SRC } from './shaders';
 
 export type ViewMode = 'effect' | 'base' | 'detail' | 'sparks';
@@ -124,6 +129,9 @@ export class SparkleRenderer {
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_jitterRadius'), this.params.jitterRadius);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_sparkStrength'), this.params.sparkStrength);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightInfluence'), this.params.lightInfluence);
+      gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightLow'), this.params.lightLow);
+      gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightHigh'), this.params.lightHigh);
+      gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightGamma'), lightLevelsGamma(this.params.lightMid));
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_highlightBias'), this.params.highlightBias);
       gl.uniform1i(this.loc(this.sparkleProgram, 'u_blendMode'), BLEND_MODE_IDS[this.params.blendMode]);
       gl.uniform1ui(this.loc(this.sparkleProgram, 'u_frame'), this.frameIndex >>> 0);
@@ -144,6 +152,9 @@ export class SparkleRenderer {
     gl.uniform1f(this.loc(this.blitProgram, 'u_edgeInfluence'), this.params.edgeInfluence);
     gl.uniform1f(this.loc(this.blitProgram, 'u_edgeGamma'), this.params.edgeGamma);
     gl.uniform1f(this.loc(this.blitProgram, 'u_lightInfluence'), this.params.lightInfluence);
+    gl.uniform1f(this.loc(this.blitProgram, 'u_lightLow'), this.params.lightLow);
+    gl.uniform1f(this.loc(this.blitProgram, 'u_lightHigh'), this.params.lightHigh);
+    gl.uniform1f(this.loc(this.blitProgram, 'u_lightGamma'), lightLevelsGamma(this.params.lightMid));
     gl.uniform1i(this.loc(this.blitProgram, 'u_mode'), VIEW_MODE_IDS[mode]);
     drawFullscreen(gl);
   }
