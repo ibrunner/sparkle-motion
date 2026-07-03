@@ -60,7 +60,7 @@ const sliderSpecs: SliderSpec[] = [
     min: 0,
     max: 1,
     step: 0.01,
-    hint: 'How much the edge map contributes to emission (adds with light influence).',
+    hint: 'Edge map’s share of emission, balanced against light influence (0 = ignore edges).',
   },
   {
     key: 'edgeGamma',
@@ -76,7 +76,7 @@ const sliderSpecs: SliderSpec[] = [
     min: 0,
     max: 1,
     step: 0.01,
-    hint: 'How much the light map contributes to emission (adds with edge influence).',
+    hint: 'Light map’s share of emission, balanced against edge influence (0 = ignore light).',
   },
   {
     key: 'lightLow',
@@ -141,6 +141,15 @@ const sliderSpecs: SliderSpec[] = [
     max: 2,
     step: 0.05,
     hint: 'Unsharp mask on the static downsampled base image.',
+  },
+  {
+    key: 'baseBrightness',
+    label: 'Base brightness',
+    min: 0,
+    max: 1,
+    step: 0.01,
+    curve: 3,
+    hint: 'Darkens the baseline the sparks sit on, below the sparks — additive blend modes read better against a darker floor. Emission is unaffected.',
   },
   {
     key: 'sparkStrength',

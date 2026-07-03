@@ -94,6 +94,7 @@ uniform float u_lightLow;
 uniform float u_lightHigh;
 uniform float u_lightGamma;
 uniform float u_highlightBias;
+uniform float u_baseBrightness; // darkens the visible baseline, not emission
 uniform int u_blendMode; // 0 replace, 1 lighten, 2 screen, 3 dodge, 4 overlay, 5 add
 uniform vec2 u_drift; // coherent drift offset, in source texels
 uniform float u_burstGate; // temporal burst envelope gating the fire rate
@@ -135,19 +136,25 @@ void main() {
   vec3 base = texture(u_base, v_uv).rgb;
   float detail = texture(u_detail, v_uv).r;
 
-  // Photon model: emission follows edges OR brightness — additive union
-  // (screen blend) so the maps reinforce instead of multiplying into grey.
+  // Photon model: emission is a balance between the edge and light maps.
+  // The influences are relative weights, so lowering one and raising the
+  // other shifts dominance instead of just stacking (edge=0 → pure light).
   float edgeC = u_edgeInfluence * pow(detail, u_edgeGamma);
   float lightC = u_lightInfluence * lightLevels(lum(base));
-  float weight = 1.0 - (1.0 - edgeC) * (1.0 - lightC);
+  float infl = u_edgeInfluence + u_lightInfluence;
+  float weight = infl > 0.0 ? (edgeC + lightC) / infl : 0.0;
   float p = 1.0 - exp(-u_density * weight * u_burstGate * u_dt);
+
+  // Darkened baseline: sparks decay toward and composite against this, but
+  // emission (lum(base) above) still reads the full-brightness base.
+  vec3 dark = base * u_baseBrightness;
 
   uint x = uint(gl_FragCoord.x);
   uint y = uint(gl_FragCoord.y);
   float roll = rand(x, y, u_frame, 0u);
 
   float keep = u_halfLife <= 0.0 ? 0.0 : exp(-0.69314718 * u_dt / u_halfLife);
-  vec3 decayed = mix(base, prev, keep);
+  vec3 decayed = mix(dark, prev, keep);
 
   if (roll < p) {
     // Image textures are uploaded top-row-first; render targets are bottom-up.
@@ -197,6 +204,7 @@ uniform float u_lightInfluence;
 uniform float u_lightLow;
 uniform float u_lightHigh;
 uniform float u_lightGamma;
+uniform float u_baseBrightness; // darkens the visible baseline, not emission
 uniform int u_mode; // 0 = effect, 1 = base only, 2 = emission weights, 3 = spark activity
 in vec2 v_uv;
 out vec4 outColor;
@@ -210,16 +218,19 @@ void main() {
   float detail = texture(u_detail, v_uv).r;
   float edgeC = u_edgeInfluence * pow(detail, u_edgeGamma);
   float lightC = u_lightInfluence * lightLevels(dot(base, vec3(0.2126, 0.7152, 0.0722)));
-  float weight = 1.0 - (1.0 - edgeC) * (1.0 - lightC);
+  float infl = u_edgeInfluence + u_lightInfluence;
+  float weight = infl > 0.0 ? (edgeC + lightC) / infl : 0.0;
+  // Darkened baseline for the shown image; weight/emission stays on true base.
+  vec3 dark = base * u_baseBrightness;
   if (u_mode == 1) {
-    outColor = vec4(base, 1.0);
+    outColor = vec4(dark, 1.0);
   } else if (u_mode == 2) {
     outColor = vec4(vec3(weight), 1.0);
   } else if (u_mode == 3) {
     float activity = clamp(length(state - base) * 2.0, 0.0, 1.0);
     outColor = vec4(max(vec3(activity), vec3(weight * 0.15)), 1.0);
   } else {
-    outColor = vec4(mix(base, state, u_intensity), 1.0);
+    outColor = vec4(mix(dark, state, u_intensity), 1.0);
   }
 }
 `;

@@ -39,6 +39,13 @@ export interface SparkleParams {
   driftSpeed: number;
   /** Unsharp-mask amount applied to the bilinear base image. */
   sharpen: number;
+  /**
+   * Darkens the visible baseline the sparks sit on (multiplier, 1 = unchanged).
+   * Emission maps still read the full-brightness source; this only dims the
+   * decay target and blend underlying so additive sparks read against a darker
+   * floor.
+   */
+  baseBrightness: number;
   /** How far a firing pixel moves toward the sampled texel: 1 = full snap. */
   sparkStrength: number;
   /** Master blend: 0 = plain base image, 1 = full effect. */
@@ -62,6 +69,7 @@ export const defaultParams: SparkleParams = {
   driftAmplitude: 0.6,
   driftSpeed: 8,
   sharpen: 0.3,
+  baseBrightness: 1,
   sparkStrength: 1,
   intensity: 1,
 };

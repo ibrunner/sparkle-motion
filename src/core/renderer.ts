@@ -143,6 +143,7 @@ export class SparkleRenderer {
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightHigh'), this.params.lightHigh);
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_lightGamma'), lightLevelsGamma(this.params.lightMid));
       gl.uniform1f(this.loc(this.sparkleProgram, 'u_highlightBias'), this.params.highlightBias);
+      gl.uniform1f(this.loc(this.sparkleProgram, 'u_baseBrightness'), this.params.baseBrightness);
       gl.uniform1i(this.loc(this.sparkleProgram, 'u_blendMode'), BLEND_MODE_IDS[this.params.blendMode]);
       gl.uniform2f(this.loc(this.sparkleProgram, 'u_drift'), this.drift.offsetX, this.drift.offsetY);
       gl.uniform1f(
@@ -170,6 +171,7 @@ export class SparkleRenderer {
     gl.uniform1f(this.loc(this.blitProgram, 'u_lightLow'), this.params.lightLow);
     gl.uniform1f(this.loc(this.blitProgram, 'u_lightHigh'), this.params.lightHigh);
     gl.uniform1f(this.loc(this.blitProgram, 'u_lightGamma'), lightLevelsGamma(this.params.lightMid));
+    gl.uniform1f(this.loc(this.blitProgram, 'u_baseBrightness'), this.params.baseBrightness);
     gl.uniform1i(this.loc(this.blitProgram, 'u_mode'), VIEW_MODE_IDS[mode]);
     drawFullscreen(gl);
   }
